@@ -6,6 +6,13 @@ patches-own [
   food-source-number   ;; number (1, 2, or 3) to identify the food sources
 ]
 
+globals [
+  ticks_blue
+  ticks_sky
+  ticks_cyan
+]
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Setup procedures ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -13,12 +20,16 @@ patches-own [
 to setup
   clear-all
   set-default-shape turtles "bug"
+  set ticks_blue -1  ;; Initialize as -1 (unrecorded)
+  set ticks_sky -1
+  set ticks_cyan -1
   create-turtles population
   [ set size 2         ;; easier to see
     set color red  ]   ;; red = not carrying food
   setup-patches
   reset-ticks
 end
+
 
 to setup-patches
   ask patches
@@ -66,9 +77,22 @@ end
 ;;;;;;;;;;;;;;;;;;;;;
 
 to go  ;; forever button
-  if not any? patches with [food > 0] [
-    stop  ;; Detener la simulación si no queda comida
+
+  ;; Check if food sources are depleted and record the tick
+  if (ticks_blue = -1 and not any? patches with [food > 0 and food-source-number = 3]) [
+    set ticks_blue ticks
   ]
+  if (ticks_sky = -1 and not any? patches with [food > 0 and food-source-number = 2]) [
+    set ticks_sky ticks
+  ]
+  if (ticks_cyan = -1 and not any? patches with [food > 0 and food-source-number = 1]) [
+    set ticks_cyan ticks
+  ]
+
+   if not any? patches with [food > 0] [
+    stop  ;; Stop the simulation if no food remains
+  ]
+
   ask turtles
   [ if who >= ticks [ stop ] ;; delay initial departure
     ifelse color = red
@@ -82,6 +106,7 @@ to go  ;; forever button
     recolor-patch ]
   tick
 end
+
 
 to return-to-nest  ;; turtle procedure
   ifelse nest?
@@ -215,7 +240,7 @@ evaporation-rate
 evaporation-rate
 0.0
 99.0
-10.0
+31.0
 1.0
 1
 NIL
@@ -631,11 +656,14 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="Evaoration rate experiment" repetitions="10" runMetricsEveryStep="false">
+  <experiment name="Evaporation rate experiment" repetitions="100" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
     <metric>ticks</metric>
-    <steppedValueSet variable="evaporation-rate" first="0" step="1" last="100"/>
+    <metric>ticks_blue</metric>
+    <metric>ticks_sky</metric>
+    <metric>ticks_cyan</metric>
+    <steppedValueSet variable="evaporation-rate" first="0" step="5" last="100"/>
     <enumeratedValueSet variable="population">
       <value value="125"/>
     </enumeratedValueSet>
